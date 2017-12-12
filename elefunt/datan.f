@@ -1,0 +1,263 @@
+C     PROGRAM TO TEST DATAN, DATAN2
+C
+C     DATA REQUIRED
+C
+C        NONE
+C
+C     SUBPROGRAMS REQUIRED FROM THIS PACKAGE
+C
+C        MACHAR - AN ENVIRONMENTAL INQUIRY PROGRAM PROVIDING
+C                 INFORMATION ON THE FLOATING-POINT ARITHMETIC
+C                 SYSTEM.  NOTE THAT THE CALL TO MACHAR CAN
+C                 BE DELETED PROVIDED THE FOLLOWING SIX
+C                 PARAMETERS ARE ASSIGNED THE VALUES INDICATED
+C
+C                 IBETA  - THE RADIX OF THE FLOATING-POINT SYSTEM
+C                 IT     - THE NUMBER OF BASE-IBETA DIGITS IN THE
+C                          SIGNIFICAND OF A FLOATING-POINT NUMBER
+C                 IRND   - 0 IF FLOATING-POINT ADDITION CHOPS,
+C                          1 IF FLOATING-POINT ADDITION ROUNDS
+C                 MINEXP - THE LARGEST IN MAGNITUDE NEGATIVE
+C                          INTEGER SUCH THAT DFLOAT(IBETA)**MINEXP
+C                          IS A POSITIVE FLOATING-POINT NUMBER
+C                 XMIN   - THE SMALLEST NON-VANISHING FLOATING-POINT
+C                          POWER OF THE RADIX
+C                 XMAX   - THE LARGEST FINITE FLOATING-POINT NO.
+C
+C        REN(K) - A FUNCTION SUBPROGRAM RETURNING RANDOM REAL
+C                 NUMBERS UNIFORMLY DISTRIBUTED OVER (0,1)
+C
+C     STANDARD FORTRAN SUBPROGRAMS REQUIRED
+C
+C         DABS, DLOG, DMAX1, DATAN, DATAN2, DFLOAT, DSQRT
+C
+C
+C     LATEST REVISION - DECEMBER 6, 1979
+C
+C     AUTHOR - W. J. CODY
+C              ARGONNE NATIONAL LABORATORY
+C
+C
+      INTEGER I,IBETA,IEXP,IOUT,IRND,II,IT,I1,J,K1,K2,K3,MACHEP,
+     1        MAXEXP,MINEXP,N,NEGEP,NGRD
+      REAL*8 A,AIT,ALBETA,B,BETA,BETAP,DEL,EM,EPS,EPSNEG,EXPON,HALF,
+     1   OB32,ONE,REN,R6,R7,SUM,TWO,W,X,XL,XMAX,XMIN,XN,XSQ,X1,Y,
+     2   Z,ZERO,ZZ
+C
+      IOUT = 6
+      CALL MACHAR(IBETA,IT,IRND,NGRD,MACHEP,NEGEP,IEXP,MINEXP,
+     1            MAXEXP,EPS,EPSNEG,XMIN,XMAX)
+      BETA = DFLOAT(IBETA)
+      ALBETA = DLOG(BETA)
+      AIT = DFLOAT(IT)
+      ONE = 1.0D0
+      HALF = 0.5D0
+      TWO = 2.0D0
+      ZERO = 0.0D0
+      A = -0.0625D0
+      B = -A
+      OB32 = B * HALF
+      N = 2000
+      XN = DFLOAT(N)
+      I1 = 0
+C-----------------------------------------------------------------
+C     RANDOM ARGUMENT ACCURACY TESTS
+C-----------------------------------------------------------------
+      DO 300 J = 1, 4
+         K1 = 0
+         K3 = 0
+         X1 = ZERO
+         R6 = ZERO
+         R7 = ZERO
+         DEL = (B - A) / XN
+         XL = A
+C
+         DO 200 I = 1, N
+            X = DEL * REN(I1) + XL
+            IF (J .EQ. 2) X = ((1.0D0+X*A)-ONE)*16.0D0
+            Z = DATAN(X)
+            IF (J .NE. 1) GO TO 100
+            XSQ = X * X
+            EM = 17.0D0
+            SUM = XSQ / EM
+C
+            DO 80 II = 1, 7
+               EM = EM - TWO
+               SUM = (ONE/EM - SUM) * XSQ
+   80       CONTINUE
+C
+            SUM = -X * SUM
+            ZZ = X + SUM
+            SUM = (X - ZZ) + SUM
+            IF (IRND .EQ. 0) ZZ = ZZ + (SUM + SUM)
+            GO TO 110
+  100       IF (J .NE. 2) GO TO 105
+            Y = X - .0625D0
+            Y = Y / (ONE + X*A)
+            ZZ = (DATAN(Y) - 8.1190004042651526021D-5) + OB32
+            ZZ = ZZ + OB32
+            GO TO 110
+  105       Z = Z + Z
+            Y = X / ((HALF + X * HALF)*((HALF - X) + HALF))
+            ZZ = DATAN(Y)
+  110       W = ONE
+            IF (Z .NE. ZERO) W = (Z - ZZ) / Z
+            IF (W .GT. ZERO) K1 = K1 + 1
+            IF (W .LT. ZERO) K3 = K3 + 1
+            W = DABS(W)
+            IF (W .LE. R6) GO TO 120
+            R6 = W
+            X1 = X
+  120       R7 = R7 + W * W
+            XL = XL + DEL
+  200    CONTINUE
+C
+         K2 = N - K3 - K1
+         R7 = DSQRT(R7/XN)
+         IF (J .EQ. 1) WRITE (IOUT,1000)
+         IF (J .EQ. 2) WRITE (IOUT,1001)
+         IF (J .GT. 2) WRITE (IOUT,1002)
+         WRITE (IOUT,1010) N,A,B
+         WRITE (IOUT,1011) K1,K2,K3
+         WRITE (IOUT,1020) IT,IBETA
+         W = -999.0D0
+         IF (R6 .NE. ZERO) W = DLOG(DABS(R6))/ALBETA
+         WRITE (IOUT,1021) R6,IBETA,W,X1
+         W = DMAX1(AIT+W,ZERO)
+         WRITE (IOUT,1022) IBETA,W
+         W = -999.0D0
+         IF (R7 .NE. ZERO) W = DLOG(DABS(R7))/ALBETA
+         WRITE (IOUT,1023) R7,IBETA,W
+         W = DMAX1(AIT+W,ZERO)
+         WRITE (IOUT,1022) IBETA,W
+         A = B
+         IF (J .EQ. 1) B = TWO - DSQRT(3.0D0)
+         IF (J .EQ. 2) B = DSQRT(TWO) - ONE
+         IF (J .EQ. 3) B = ONE
+  300 CONTINUE
+C-----------------------------------------------------------------
+C     SPECIAL TESTS
+C-----------------------------------------------------------------
+      WRITE (IOUT,1025)
+      WRITE (IOUT,1030)
+      A = 5.0D0
+C
+      DO 320 I = 1, 5
+         X = REN(I1) * A
+         Z = DATAN(X) + DATAN(-X)
+         WRITE (IOUT,1060) X, Z
+  320 CONTINUE
+C
+      WRITE (IOUT,1031)
+      BETAP = BETA ** IT
+      X = REN(I1) / BETAP
+C
+      DO 330 I = 1, 5
+         Z = X - DATAN(X)
+         WRITE (IOUT,1060) X, Z
+         X = X / BETA
+  330 CONTINUE
+C
+      WRITE (IOUT,1032)
+      A = -TWO
+      B = 4.0D0
+C
+      DO 340 I = 1, 5
+         X = REN(I1) * B + A
+         Y = REN(I1)
+         W = -Y
+         Z = DATAN(X/Y) - DATAN2(X,Y)
+         ZZ = DATAN(X/W) - DATAN2(X,W)
+         WRITE (IOUT,1059) X, Y, Z, ZZ
+  340 CONTINUE
+C
+      WRITE (IOUT,1035)
+      EXPON = DFLOAT(MINEXP) * 0.75D0
+      X = BETA ** EXPON
+      Y = DATAN(X)
+      WRITE (IOUT,1061) X, Y
+C-----------------------------------------------------------------
+C     TEST OF ERROR RETURNS
+C-----------------------------------------------------------------
+      WRITE (IOUT,1050)
+      WRITE (IOUT,1051) XMAX
+      Z = DATAN(XMAX)
+      WRITE (IOUT,1061) XMAX, Z
+      X = ONE
+      Y = ZERO
+      WRITE (IOUT,1053) X, Y
+      Z = DATAN2(X,Y)
+      WRITE (IOUT,1062) X, Y, Z
+      WRITE (IOUT,1053) XMIN, XMAX
+      Z = DATAN2(XMIN,XMAX)
+      WRITE (IOUT,1062) XMIN, XMAX, Z
+      WRITE (IOUT,1053) XMAX, XMIN
+      Z = DATAN2(XMAX,XMIN)
+      WRITE (IOUT,1062) XMAX, XMIN, Z
+      X = ZERO
+      WRITE (IOUT,1054) X, Y
+      Z = DATAN2(X,Y)
+      WRITE (IOUT,1062) X, Y, Z
+      WRITE (IOUT,1100)
+      STOP
+ 1000 FORMAT(44H1TEST OF DATAN(X) VS TRUNCATED TAYLOR SERIES  //)
+ 1001 FORMAT(21H1TEST OF DATAN(X) VS ,
+     1  42HDATAN(1/16) + DATAN((X-1/16)/(1+X/16))    //)
+ 1002 FORMAT(42H1TEST OF 2*DATAN(X) VS DATAN(2X/(1-X*X))    //)
+ 1010 FORMAT(I7,47H RANDOM ARGUMENTS WERE TESTED FROM THE INTERVAL /
+     1 6X,1H(,E15.4,1H,,E15.4,1H)//)
+ 1011 FORMAT(20H DATAN(X) WAS LARGER,I6,7H TIMES,/
+     1    12X,7H AGREED,I6,11H TIMES, AND /
+     1   8X,11HWAS SMALLER,I6,7H TIMES.//)
+ 1020 FORMAT(10H THERE ARE,I4,5H BASE,I4,
+     1    46H SIGNIFICANT DIGITS IN A FLOATING-POINT NUMBER  //)
+ 1021 FORMAT(30H THE MAXIMUM RELATIVE ERROR OF,E15.4,3H = ,I4,3H **,
+     1  F7.2/4X,16HOCCURRED FOR X =,E17.6)
+ 1022 FORMAT(27H THE ESTIMATED LOSS OF BASE,I4,
+     1  22H SIGNIFICANT DIGITS IS,F7.2//)
+ 1023 FORMAT(40H THE ROOT MEAN SQUARE RELATIVE ERROR WAS,E15.4,
+     1    3H = ,I4,3H **,F7.2)
+ 1025 FORMAT(14H1SPECIAL TESTS//)
+ 1030 FORMAT(55H THE IDENTITY   DATAN(-X) = -DATAN(X)   WILL BE TESTED.
+     1      //8X,1HX,9X,12HF(X) + F(-X)/)
+ 1031 FORMAT(53H THE IDENTITY DATAN(X) = X , X SMALL, WILL BE TESTED.//
+     1       8X,1HX,9X,8HX - F(X)/)
+ 1032 FORMAT(53H THE IDENTITY DATAN(X/Y) = DATAN2(X,Y) WILL BE TESTED /
+     1 57H THE FIRST COLUMN OF RESULTS SHOULD BE 0, THE SECOND +-PI//
+     2 8X,1HX,13X,1HY,5X,15HF1(X/Y)-F2(X,Y),18HF1(X/Y)-F2(X/(-Y)) /)
+ 1035 FORMAT(43H TEST OF UNDERFLOW FOR VERY SMALL ARGUMENT. /)
+ 1050 FORMAT(22H1TEST OF ERROR RETURNS //)
+ 1051 FORMAT(39H DATAN WILL BE CALLED WITH THE ARGUMENT,E15.7/
+     1       41H THIS SHOULD NOT TRIGGER AN ERROR MESSAGE/)
+ 1053 FORMAT(41H DATAN2 WILL BE CALLED WITH THE ARGUMENTS/2E15.7/
+     1       41H THIS SHOULD NOT TRIGGER AN ERROR MESSAGE/)
+ 1054 FORMAT(41H DATAN2 WILL BE CALLED WITH THE ARGUMENTS/2E15.7/
+     1       37H THIS SHOULD TRIGGER AN ERROR MESSAGE//)
+ 1059 FORMAT(4E15.7/)
+ 1060 FORMAT(2E15.7/)
+ 1061 FORMAT(6X,7H DATAN(,E13.6,3H) =,E13.6/)
+ 1062 FORMAT(6X,8H DATAN2(,2E13.6,3H) =,E13.6/)
+ 1100 FORMAT(25H THIS CONCLUDES THE TESTS )
+C     ---------- LAST CARD OF DATAN/DATAN2 TEST PROGRAM ----------
+      END
+      DOUBLE PRECISION FUNCTION REN(K)
+C
+C     RANDOM NUMBER GENERATOR - BASED ON ALGORITHM 266 BY PIKE AND
+C      HILL (MODIFIED BY HANSSON), COMMUNICATIONS OF THE ACM,
+C      VOL. 8, NO. 10, OCTOBER 1965.
+C
+C     THIS SUBPROGRAM IS INTENDED FOR USE ON COMPUTERS WITH
+C      FIXED POINT WORDLENGTH OF AT LEAST 29 BITS.  IT IS
+C      BEST IF THE FLOATING POINT SIGNIFICAND HAS AT MOST
+C      29 BITS.
+C
+      INTEGER IY,J,K
+      DATA IY/100001/
+C
+      J = K
+      IY = IY * 125
+      IY = IY - (IY/2796203) * 2796203
+      REN = DFLOAT(IY) / 2796203.0D0 * (1.0D0 + 1.0D-6 + 1.0D-12)
+      RETURN
+C     ---------- LAST CARD OF REN ----------
+      END
