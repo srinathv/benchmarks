@@ -5,6 +5,7 @@
 //Srinath V. 12/27/17:
 //a)add loops for call count of 100
 //b)loop for 10 secs
+//Olly Perks 1/6/18: discussion of delay timing structure
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,13 +39,11 @@ int main(int argc, char** argv) {
 
 MPI_Barrier(MPI_COMM_WORLD); // sync all 
 
-
-
-
   int number, x, count=1 ;
-  for (x = 0; x < 10; x++){
+  for (x = 0; x < 1; x++){
   if (world_rank == 0) {
   //stall for 10secs
+    starttime = time(NULL);
     looptime = starttime;
     endtime = starttime + delay1;
     while (looptime < endtime)
@@ -71,6 +70,7 @@ MPI_Barrier(MPI_COMM_WORLD); // sync all
     MPI_Send(&number, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
   } else if (world_rank == 1) {
       //stall for 10secs
+    starttime = time(NULL);
     looptime = starttime;
     endtime = starttime + delay1;
     while (looptime < endtime)
@@ -84,9 +84,12 @@ MPI_Barrier(MPI_COMM_WORLD); // sync all
     printf("count is %d \n", count);
     count++ ;
   };
-        start = time(NULL);
-        printf("loop time doing mpi sends & receives is : %s", ctime(&start));
+ //       starttime = time(NULL);
+ //       printf("loop time doing mpi sends & receives is : %s", ctime(&starttime));
 
-    printf("end time is %s", ctime(&endwait));
+  MPI_Barrier(MPI_COMM_WORLD); // sync all 
+
+  printf("end time is %s", ctime(&endtime));
   MPI_Finalize();
   return 0;
+}
