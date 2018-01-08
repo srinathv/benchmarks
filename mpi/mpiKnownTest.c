@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 MPI_Barrier(MPI_COMM_WORLD); // sync all 
 
   int number, x, count=1 ;
-  for (x = 0; x < 1; x++){
+  for (x = 0; x < 100; x++){
   if (world_rank == 0) {
   //stall for 10secs
     starttime = time(NULL);
@@ -81,7 +81,7 @@ MPI_Barrier(MPI_COMM_WORLD); // sync all
     printf("Process 1 received number %d from process 0\n", number);
   }
   // rank 0 ~ 10secs in mpi while rank 1 is ~0 secs in mpi
-    printf("count is %d \n", count);
+    printf("count is %d from rank %d \n", count, world_rank);
     count++ ;
   };
  //       starttime = time(NULL);
