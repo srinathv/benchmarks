@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 MPI_Barrier(MPI_COMM_WORLD); // sync all 
 
   int number, x, count=1 ;
-  for (x = 0; x < 100; x++){
+  for (x = 0; x < 10; x++){
   if (world_rank == 0) {
   //stall for 10secs
     starttime = time(NULL);
