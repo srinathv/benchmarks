@@ -34,8 +34,9 @@ int main(int argc, char** argv) {
     time_t delay2 = 5; // end loop after this time has elapsed
     time_t delay3 = 15; // end loop after this time has elapsed
 
-
+  if (world_rank == 0) {
     printf("start time is : %s", ctime(&starttime));
+  }
 
 MPI_Barrier(MPI_COMM_WORLD); // sync all 
 
@@ -87,9 +88,28 @@ MPI_Barrier(MPI_COMM_WORLD); // sync all
  //       starttime = time(NULL);
  //       printf("loop time doing mpi sends & receives is : %s", ctime(&starttime));
 
-  MPI_Barrier(MPI_COMM_WORLD); // sync all 
+int global_sum;
+if (world_rank == 0) {
+starttime = time(NULL);
+}
+MPI_Allreduce(&number, &global_sum, 1, MPI_INT, MPI_SUM,
+              MPI_COMM_WORLD);
 
+if (world_rank == 0) {
+endtime = time(NULL);
+double allReduceTime = difftime(starttime,endtime);
+//printf("MPI_allreduce time is %.f \n", allReduceTime);
+printf("allReduce start time is %s", ctime(&starttime));
+printf("allReduce end time is %s", ctime(&endtime));
+}
+MPI_Barrier(MPI_COMM_WORLD); // sync all 
+
+
+
+if (world_rank == 0) {
+  endtime = time(NULL);
   printf("end time is %s", ctime(&endtime));
+}
   MPI_Finalize();
   return 0;
 }
