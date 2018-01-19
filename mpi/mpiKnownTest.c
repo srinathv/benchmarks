@@ -92,9 +92,10 @@ int global_sum;
 if (world_rank == 0) {
 starttime = time(NULL);
 }
+for (x = 0; x < 10; x ++){
 MPI_Allreduce(&number, &global_sum, 1, MPI_INT, MPI_SUM,
               MPI_COMM_WORLD);
-
+}
 if (world_rank == 0) {
 endtime = time(NULL);
 double allReduceTime = difftime(starttime,endtime);
