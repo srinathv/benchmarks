@@ -1,3 +1,7 @@
 [submodule "dataracebench"]
 	path = dataracebench
 	url = git@github.com:LLNL/dataracebench.git
+[submodule "papi/papiex-oss"]
+	path = papi/papiex-oss
+	url = https://bitbucket.org/minimalmetrics/papiex-oss.git
+	branch = master
