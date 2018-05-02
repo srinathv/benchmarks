@@ -88,6 +88,7 @@ MPI_Barrier(MPI_COMM_WORLD); // sync all
  //       starttime = time(NULL);
  //       printf("loop time doing mpi sends & receives is : %s", ctime(&starttime));
 
+MPI_Barrier(MPI_COMM_WORLD); // sync all 
 int global_sum;
 if (world_rank == 0) {
 starttime = time(NULL);

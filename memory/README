@@ -4,4 +4,5 @@ stassuij:
   *part of the Coral Benchmark under GFMCmk
       ** https://asc.llnl.gov/CORAL-benchmarks/Micro/GFMCmk_stassuij.tar.bz2
 
-
+mpiKnownMemSize.c:
+  *simple test that allocates 100MB on rank 0 for 10 secs and then frees, followed by 200MB on rank 1 for 10secs then freed
