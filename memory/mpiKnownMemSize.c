@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
 MPI_Barrier(MPI_COMM_WORLD); // sync all
 
   int number, x, count=1 ;
-  for (x = 0; x < 10; x++){
+//  for (x = 0; x < 10; x++){
   if (world_rank == 0) {
   // allocate known size of data 100MB
   char *data;
@@ -49,7 +49,7 @@ MPI_Barrier(MPI_COMM_WORLD); // sync all
   data = (char *) malloc(bytes);
   for(int i=0;i<bytes;i++){
     data[i] = (char) rand();
-    printf("%c",data[i]);
+//    printf("%c",data[i]);
   }
   //stall for 10secs
     starttime = time(NULL);
@@ -58,6 +58,7 @@ MPI_Barrier(MPI_COMM_WORLD); // sync all
     while (looptime < endtime)
     {
         looptime = time(NULL);
+        printf("%s",ctime(&looptime));
     }
 //    // if we are rank 0, set the number to -3 and send it to process 1
 //    number = -3;
@@ -70,29 +71,29 @@ MPI_Barrier(MPI_COMM_WORLD); // sync all
 
 // rank 0 ~ 0sec in mpi but 1 rank in 10s in mpi_recv
 
-MPI_Barrier(MPI_COMM_WORLD); // sync all
+//MPI_Barrier(MPI_COMM_WORLD); // sync all
 
-  if (world_rank == 0) {
-
-    // If we are rank 0, set the number to -5 and send it to process 1
-    number = -5;
-    MPI_Send(&number, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
-  } else if (world_rank == 1) {
-      //stall for 10secs
-    starttime = time(NULL);
-    looptime = starttime;
-    endtime = starttime + delay1;
-    while (looptime < endtime)
-    {
-        looptime = time(NULL);
-    }
-    MPI_Recv(&number, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    printf("Process 1 received number %d from process 0\n", number);
-  }
+//  if (world_rank == 0) {
+//
+//    // If we are rank 0, set the number to -5 and send it to process 1
+//    number = -5;
+//    MPI_Send(&number, 1, MPI_INT, 1, 0, MPI_COMM_WORLD);
+//  } else if (world_rank == 1) {
+//      //stall for 10secs
+//    starttime = time(NULL);
+//    looptime = starttime;
+//    endtime = starttime + delay1;
+//    while (looptime < endtime)
+//    {
+//        looptime = time(NULL);
+//    }
+//    MPI_Recv(&number, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+//    printf("Process 1 received number %d from process 0\n", number);
+//  }
   // rank 0 ~ 10secs in mpi while rank 1 is ~0 secs in mpi
-    printf("count is %d from rank %d \n", count, world_rank);
-    count++ ;
-  };
+//    printf("count is %d from rank %d \n", count, world_rank);
+//    count++ ;
+//  }; // 10 count for loop
  //       starttime = time(NULL);
  //       printf("loop time doing mpi sends & receives is : %s", ctime(&starttime));
 
@@ -111,7 +112,7 @@ MPI_Barrier(MPI_COMM_WORLD); // sync all
 //printf("allReduce start time is %s", ctime(&starttime));
 //printf("allReduce end time is %s", ctime(&endtime));
 //}
-MPI_Barrier(MPI_COMM_WORLD); // sync all
+//MPI_Barrier(MPI_COMM_WORLD); // sync all
 
 
 
