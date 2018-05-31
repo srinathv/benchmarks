@@ -8,7 +8,7 @@
 ! Include the MPI library definitons:
   include 'mpif.h'
 
-  integer numtasks, rank, ierr, rc, len, i
+  integer world_size, world_rank, ierr, rc, len, i
   character*(MPI_MAX_PROCESSOR_NAME) name
 
   ! Initialize the MPI library:
@@ -18,6 +18,15 @@
      call MPI_ABORT(MPI_COMM_WORLD, rc, ierr)
   end if
 
+
+  call MPI_COMM_RANK(MPI_COMM_WORLD, world_rank, ierr)
+  call MPI_Comm_size(MPI_COMM_WORLD, world_size)
+
+! We are assuming at least 2 processes for this task
+  if (world_size < 2 ) then
+    write(*,*) 'World size must be greater than 1 for this test.'
+    call MPI_ABORT (MPI_COMM_WORLD, 1)
+  endif
 
 ! Tell the MPI library to release all resources it is using:
   call MPI_FINALIZE(ierr)
