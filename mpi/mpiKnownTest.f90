@@ -8,7 +8,11 @@
 ! Include the MPI library definitons:
   include 'mpif.h'
 
-  integer world_size, world_rank, ierr, rc, len, i
+  integer ::  world_size, world_rank, ierr, rc, len, i
+  integer ::  time_int, delay1, delay2, delay3
+  integer ::  starttime_int, endtime_int, looptime_int
+  integer ::  mpiMessage, x, tripcount
+  character(30) :: starttime,endtime
   character*(MPI_MAX_PROCESSOR_NAME) name
 
   ! Initialize the MPI library:
@@ -27,6 +31,39 @@
     write(*,*) 'World size must be greater than 1 for this test.'
     call MPI_ABORT (MPI_COMM_WORLD, 1)
   endif
+! set up first time loop
+  time_int=time8()
+  call ctime(time_int,starttime)
+  delay1=10
+  delay2=5
+  delay3=15
+
+  if (world_rank == 0) then
+    write(*,*) "start time is ", starttime
+  endif
+
+
+  call MPI_Barrier(MPI_COMM_WORLD) ! sync all
+
+   tripcount=1
+!  for (x = 0; x < 10; x++){
+   if (world_rank == 0) then
+!  //stall for 10secs
+!     starttime_int = time8()
+!     looptime_int = starttime_int
+!     endtime_int = starttime_int + delay1
+!     do while (looptime_int < endtime_int)
+!        looptime_int = time8()
+!     enddo
+!    // If we are rank 0, set the number to -3 and send it to process 1
+     mpiMessage = -3;
+     call  MPI_Send(mpiMessage, 1, MPI_INT, 1, 0, MPI_COMM_WORLD,ierr)
+   else if (world_rank == 1) then
+     call MPI_Recv(mpiMessage, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, ierr);
+     write(*,*) 'Process 1 received number ', mpiMessage,' from process'
+   endif
+
+
 
 ! Tell the MPI library to release all resources it is using:
   call MPI_FINALIZE(ierr)
