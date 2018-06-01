@@ -14,6 +14,10 @@
   integer ::  mpiMessage, x, tripcount
   character(30) :: starttime,endtime
   character*(MPI_MAX_PROCESSOR_NAME) name
+  integer :: stat(MPI_STATUS_SIZE)
+  integer :: tag
+
+  tag=1
 
   ! Initialize the MPI library:
   call MPI_INIT(ierr)
@@ -24,7 +28,7 @@
 
 
   call MPI_COMM_RANK(MPI_COMM_WORLD, world_rank, ierr)
-  call MPI_Comm_size(MPI_COMM_WORLD, world_size)
+  call MPI_Comm_size(MPI_COMM_WORLD, world_size, ierr)
 
 ! We are assuming at least 2 processes for this task
   if (world_size < 2 ) then
@@ -43,27 +47,29 @@
   endif
 
 
-  call MPI_Barrier(MPI_COMM_WORLD) ! sync all
+  call MPI_Barrier(MPI_COMM_WORLD,ierr) ! sync all
 
-   tripcount=1
+!   tripcount=1
 !  for (x = 0; x < 10; x++){
    if (world_rank == 0) then
-!  //stall for 10secs
-!     starttime_int = time8()
-!     looptime_int = starttime_int
-!     endtime_int = starttime_int + delay1
-!     do while (looptime_int < endtime_int)
-!        looptime_int = time8()
-!     enddo
-!    // If we are rank 0, set the number to -3 and send it to process 1
-     mpiMessage = -3;
-     call  MPI_Send(mpiMessage, 1, MPI_INT, 1, 0, MPI_COMM_WORLD,ierr)
+!  stall for 10secs
+     starttime_int = time8()
+     looptime_int = starttime_int
+     endtime_int = starttime_int + delay1
+     do while (looptime_int < endtime_int)
+        looptime_int = time8()
+     enddo
+!     If we are rank 0, set the number to -3 and send it to process 1
+     mpiMessage = -3
+     call  MPI_Send(mpiMessage, 1, MPI_INTEGER, 1, tag, MPI_COMM_WORLD,ierr)
+
    else if (world_rank == 1) then
-     call MPI_Recv(mpiMessage, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, ierr);
+  write(*,*) 'on rank', world_rank
+     call MPI_Recv(mpiMessage, 1, MPI_INTEGER, 0, tag, MPI_COMM_WORLD, stat, ierr)
      write(*,*) 'Process 1 received number ', mpiMessage,' from process'
    endif
 
-
+  call MPI_Barrier(MPI_COMM_WORLD,ierr) ! sync all
 
 ! Tell the MPI library to release all resources it is using:
   call MPI_FINALIZE(ierr)
