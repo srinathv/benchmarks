@@ -11,8 +11,9 @@
   integer ::  world_size, world_rank, ierr, rc, len, i
   integer ::  time_int, delay1, delay2, delay3
   integer ::  starttime_int, endtime_int, looptime_int
+  integer ::  bigstarttime_int, bigendtime_int
   integer ::  mpiMessage, x, tripcount
-  character(30) :: starttime,endtime
+  character(30) :: starttime,endtime,bigTottime
   character*(MPI_MAX_PROCESSOR_NAME) name
   integer :: stat(MPI_STATUS_SIZE)
   integer :: tag
@@ -36,8 +37,8 @@
     call MPI_ABORT (MPI_COMM_WORLD, 1)
   endif
 ! set up first time loop
-  time_int=time8()
-  call ctime(time_int,starttime)
+  bigstarttime_int=time8()
+  call ctime(bigstarttime_int,starttime)
   delay1=10
   delay2=5
   delay3=15
@@ -66,10 +67,50 @@
    else if (world_rank == 1) then
   write(*,*) 'on rank', world_rank
      call MPI_Recv(mpiMessage, 1, MPI_INTEGER, 0, tag, MPI_COMM_WORLD, stat, ierr)
-     write(*,*) 'Process 1 received number ', mpiMessage,' from process'
+     write(*,*) 'Process 1 received number ', mpiMessage,' from process 0'
    endif
 
-  call MPI_Barrier(MPI_COMM_WORLD,ierr) ! sync all
+!// rank 0 ~ 0sec in mpi but 1 rank in 10s in mpi_recv
+!
+!
+   call MPI_Barrier(MPI_COMM_WORLD,ierr) ! sync all
+
+  if (world_rank == 0) then
+     mpiMessage = -5
+!    // If we are rank 0, set the number to -5 and send it to process 1
+     call  MPI_Send(mpiMessage, 1, MPI_INTEGER, 1, tag, MPI_COMM_WORLD,ierr)
+   else if (world_rank == 1) then
+     starttime_int = time8()
+     looptime_int = starttime_int
+     endtime_int = starttime_int + delay1
+     do while (looptime_int < endtime_int)
+        looptime_int = time8()
+     enddo
+  write(*,*) 'on rank', world_rank
+     call MPI_Recv(mpiMessage, 1, MPI_INTEGER, 0, tag, MPI_COMM_WORLD, stat, ierr)
+     write(*,*) 'Process 1 received number ', mpiMessage,' from process 0'
+   endif
+!  // rank 0 ~ 10secs in mpi while rank 1 is ~0 secs in mpi
+!    printf("count is %d from rank %d \n", count, world_rank);
+!    count++ ;
+!   endif
+! //       starttime = time(NULL);
+! //       printf("loop time doing mpi sends & receives is : %s", ctime(&starttime));
+!
+ call MPI_Barrier(MPI_COMM_WORLD,ierr); ! sync all
+
+  bigendtime_int=time8()
+  call ctime(bigendtime_int,endtime)
+  call ctime(bigendtime_int-bigstarttime_int,bigTottime)
+
+
+  if (world_rank == 0) then
+    write(*,*) "end time is ", endtime
+    write(*,*) "total time is ", bitTottime
+  endif
+
+
+
 
 ! Tell the MPI library to release all resources it is using:
   call MPI_FINALIZE(ierr)
