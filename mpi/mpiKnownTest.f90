@@ -11,7 +11,7 @@
   integer ::  world_size, world_rank, ierr, rc, len, i
   integer ::  time_int, delay1, delay2, delay3
   integer ::  starttime_int, endtime_int, looptime_int
-  integer ::  bigstarttime_int, bigendtime_int
+  real    ::  start, finish
   integer ::  mpiMessage, x, tripcount
   character(30) :: starttime,endtime,bigTottime
   character*(MPI_MAX_PROCESSOR_NAME) name
@@ -37,14 +37,15 @@
     call MPI_ABORT (MPI_COMM_WORLD, 1)
   endif
 ! set up first time loop
-  bigstarttime_int=time8()
-  call ctime(bigstarttime_int,starttime)
+  starttime_int=time8()
+  call ctime(starttime_int,starttime)
   delay1=10
   delay2=5
   delay3=15
 
   if (world_rank == 0) then
     write(*,*) "start time is ", starttime
+    call cpu_time(start)
   endif
 
 
@@ -99,14 +100,13 @@
 !
  call MPI_Barrier(MPI_COMM_WORLD,ierr); ! sync all
 
-  bigendtime_int=time8()
-  call ctime(bigendtime_int,endtime)
-  call ctime(bigendtime_int-bigstarttime_int,bigTottime)
-
+  endtime_int=time8()
+  call ctime(endtime_int,endtime)
 
   if (world_rank == 0) then
     write(*,*) "end time is ", endtime
-    write(*,*) "total time is ", bitTottime
+    call cpu_time(finish)
+    write(*,*) "total time [cpu_time] is ", finish-start
   endif
 
 
