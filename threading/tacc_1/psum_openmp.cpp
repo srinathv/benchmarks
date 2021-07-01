@@ -3,13 +3,7 @@
 #include <iostream>
 #include <omp.h>
 #include <thread>
-
-#include <tbb/blocked_range.h>
-#include <tbb/mutex.h>
-#include <tbb/parallel_for.h>
-#include <tbb/parallel_for_each.h>
-#include <tbb/task_scheduler_init.h>
-#include <tbb/tick_count.h>
+#include <chrono>
 
 #define NFRAMES 500
 #define BUFSIZE 1920 * 1080 * 3
@@ -19,15 +13,17 @@
 // to compare timing.  The reported results should be divided by the CPU frequency
 // to get wall time.
 
-typedef uint64_t tic;
-
-__inline__ tic tsc() {
-  tic lo, hi;
-  __asm__ __volatile__("rdtsc" : "=a"(lo), "=d"(hi));
-  return ((tic)hi << 32 | lo);
-}
+#ifdef TAU_ENABLED
+#include <TAU.h>
+#endif
 
 int main(int argc, char* argv[]) {
+  using namespace std::chrono;
+
+#ifdef TAU_ENABLED
+TAU_PROFILE_SET_NODE(0)
+#endif
+
   int *bufs[NUMBUF];
   int NCORES = 1 ;
 
@@ -44,17 +40,28 @@ int main(int argc, char* argv[]) {
 
 
     omp_set_num_threads(NCORES);
-
-    tic t0 = tsc();
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
     int *a = bufs[0];
+#ifdef TAU_ENABLED
+   TAU_START("Outter for loop");
+#endif
     for (int i = 0; i < NFRAMES; i++)
       for (int j = 1; j < NUMBUF; j++) {
         int *b = bufs[j];
+#ifdef TAU_ENABLED
+   TAU_START("inner for loop");
+#endif
 #pragma omp parallel for
         for (int k = 0; k < BUFSIZE; k++) a[k] += b[k];
+#ifdef TAU_ENABLED
+   TAU_STOP("inner for loop");
+#endif
       }
-
-    tic ttics = tsc() - t0;
-    std::cout << "openmp " << NCORES << ": " << ttics / (2.8 * 1000000000.0) << "\n";
+#ifdef TAU_ENABLED
+   TAU_STOP("Outter for loop");
+#endif
+     high_resolution_clock::time_point t2 = high_resolution_clock::now();
+     duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+     std::cout << "openmp " << NCORES << ": " << time_span.count() << " seconds.\n";
 
   }
